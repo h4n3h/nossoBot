@@ -1,7 +1,9 @@
 const Discord = require('discord.js');
 const bot = new Discord.Client();
 
-const token = "hehehehe";
+const token = "";
+
+
 
 bot.on('ready', () =>{
     console.log('Bot on');
@@ -19,7 +21,7 @@ bot.on('message', async message => {
     // we ignore it
     if (!message.guild) return;
   
-    if (message.content === 'nosso grupo') {
+    if (message.content.toLowerCase() === 'nosso grupo') {
       // Only try to join the sender's voice channel if they are in one themselves
       if (message.member.voice.channel) {
         const connection = await message.member.voice.channel.join();
@@ -37,7 +39,7 @@ bot.on('message', async message => {
         console.log('Finished playing!');
         });
 
-        dispatcher.destroy(); // end the stream
+        //dispatcher.destroy(); // end the stream
       } else {
         message.reply('You need to join a voice channel first!');
       }

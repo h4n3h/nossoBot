@@ -1,12 +1,11 @@
-const Discord = require('discord.js');
-const bot = new Discord.Client();
+const Discord = require('discord.js')
+const bot = new Discord.Client({ intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_VOICE_STATES'] })
+const { joinVoiceChannel, createAudioResource, createAudioPlayer } = require('@discordjs/voice')
+const dotenv = require('dotenv')
+dotenv.config()
 
-const token = "";
-
-
-
-bot.on('ready', () =>{
-    console.log('Bot on');
+bot.on('ready', () => {
+	console.log('Bot on')
 })
 
 /*bot.on('message', msg=>{
@@ -15,35 +14,29 @@ bot.on('ready', () =>{
     }
 })*/
 
+bot.on('messageCreate', async message => {
+	// Voice only works in guilds, if the message does not come from a guild,
+	// we ignore it
+	if (!message.guild || message.content.toLowerCase() !== 'nosso grupo') return
 
-bot.on('message', async message => {
-    // Voice only works in guilds, if the message does not come from a guild,
-    // we ignore it
-    if (!message.guild) return;
-  
-    if (message.content.toLowerCase() === 'nosso grupo') {
-      // Only try to join the sender's voice channel if they are in one themselves
-      if (message.member.voice.channel) {
-        const connection = await message.member.voice.channel.join();
-        
-        const dispatcher = connection.play('flute.mp3', {
-          volume: 0.5,
-        });
+	if (message.guild.me.voice.channel) return
 
-        /*dispatcher.pause();*/
-        dispatcher.resume();
+	if (!message.member.voice.channel) return message.reply('You need to join a voice channel first!')
 
-        dispatcher.setVolume(0.5); // half the volume
+	// Only try to join the sender's voice channel if they are in one themselves
+	const connection = joinVoiceChannel({
+		guildId: message.guild.id,
+		channelId: message.member.voice.channel.id,
+		adapterCreator: message.guild.voiceAdapterCreator,
+	})
 
-        dispatcher.on('finish', () => {
-        console.log('Finished playing!');
-        });
+	const resource = createAudioResource('flute.mp3')
 
-        //dispatcher.destroy(); // end the stream
-      } else {
-        message.reply('You need to join a voice channel first!');
-      }
-    }
-  });
+	const player = createAudioPlayer()
 
-bot.login(token);
+	connection.subscribe(player)
+
+	player.play(resource)
+})
+
+bot.login(process.env.BOT_TOKEN)
